@@ -30,8 +30,37 @@ def login():
 
     return render_template('login.html')
 
-@app.route('/register')
+@app.route('/register', methods=['GET', 'POST'])
 def register():
+    if request.method == 'GET':
+        return render_template('register.html')
+
+    email = request.form['inputEmail']
+    username = request.form['inputUsername']
+    first_name = request.form['inputFirstName']
+    last_name = request.form['inputLastName']
+    password = request.form['inputPassword']
+    confirm_password = request.form['inputPasswordConfirm']
+
+    # A user with this email already exists
+    # A user with this email does not exist, but the passwords do not match
+    # A user with this email does not exist, and the passwords match - REGISTER THE USER
+    check_user = User.query.filter_by(email=email).first()
+
+    if check_user is not None:
+        print('A user with this email already exists.')
+
+    elif password != confirm_password:
+        print('The passwords do not match')
+
+    else:
+        # REGISTER USER
+        new_user = User(email=email, username=username, first_name=first_name, last_name=last_name, password=password)
+        db.session.add(new_user)
+        db.session.commit()
+        print('User registered successfully')
+        return redirect(url_for('auth.login'))
+
     return render_template('register.html')
 
 @app.route('/logout')
